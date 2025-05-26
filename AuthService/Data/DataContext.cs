@@ -1,6 +1,11 @@
-﻿namespace AuthService.Data; 
+﻿using AuthService.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-public class DataContext
+using Microsoft.EntityFrameworkCore;
+
+
+namespace AuthService.Data; 
+
+public class DataContext(DbContextOptions<DataContext> options) : IdentityDbContext<UserEntity>(options)
 {
-
 }
