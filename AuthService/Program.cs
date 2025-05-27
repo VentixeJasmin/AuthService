@@ -4,6 +4,7 @@ using AuthService.Models;
 using Microsoft.EntityFrameworkCore;
 using AuthService.Services;
 using Azure.Messaging.ServiceBus;
+using AuthService.ServiceBus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ builder.Services.AddSingleton<ServiceBusClient>(provider =>
     return new ServiceBusClient(connectionString);
 });
 builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("AuthDatabaseConnection")));
+
+builder.Services.AddHostedService<AccountCreatedMessageHandler>();
 
 builder.Services.AddIdentity<UserEntity, IdentityRole>(x =>
 {

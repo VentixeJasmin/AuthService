@@ -32,6 +32,7 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         {
             FirstName = dto.FirstName,
             LastName = dto.LastName,
+            UserName = dto.Email,
             Email = dto.Email,
             EmailConfirmed = false
         };
@@ -40,14 +41,17 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         if (result.Succeeded)
         {
             await PublishUserCreatedEvent(user.Email);
-            return Ok("Registration successful. Please check your email and verify your account.");
+            return Ok(new { message = "Registration successful. Please check your email and verify your account.", userId = user.Id });
         }
         else
         {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
             return BadRequest(ModelState);
         }
     }
-
 
     [HttpPost("signin")]
     public async Task<IActionResult> SignIn([FromBody] SignInDto dto)
@@ -90,7 +94,10 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
             Email = email
         };
 
-        var message = new ServiceBusMessage(JsonSerializer.Serialize(eventMessage));
+        var serializedMessage = JsonSerializer.Serialize(eventMessage);
+        Console.WriteLine($"Publishing message: {serializedMessage}"); // Add this line
+
+        var message = new ServiceBusMessage(serializedMessage);
 
         await sender.SendMessageAsync(message);
     }

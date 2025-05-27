@@ -16,7 +16,7 @@ public class UserDto
 
     [Required(ErrorMessage = "Required")]
     [DataType(DataType.Password)]
-    [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "Invalid email")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", ErrorMessage = "Password must contain at least 8 characters, one uppercase, one lowercase, one digit and one special character")]
     public string Password { get; set; } = null!;
 
     [Required(ErrorMessage = "Required")]
