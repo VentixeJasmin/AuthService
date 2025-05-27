@@ -1,19 +1,24 @@
 ﻿using AuthService.Models;
+using AuthService.ServiceBus;
 using AuthService.Services;
+using Azure.Messaging.ServiceBus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.Intrinsics.Arm;
+using System.Text.Json;
 
-namespace AuthService.Controllers; 
+namespace AuthService.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(UserManager<UserEntity> userManager, UserService userService, SignInManager<UserEntity> signInManager) : ControllerBase
+public class AuthController(UserManager<UserEntity> userManager, UserService userService, SignInManager<UserEntity> signInManager, ServiceBusClient serviceBusClient, AccountCreatedMessageHandler messageHandler) : ControllerBase
 {
-    private readonly UserManager<UserEntity> _userManager = userManager; 
+    private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly UserService _userService = userService;
     private readonly SignInManager<UserEntity> _signInManager = signInManager;
+    private readonly ServiceBusClient _serviceBusClient = serviceBusClient;
+    private readonly AccountCreatedMessageHandler _messageHandler = messageHandler;
 
     [HttpPost("signup")]
     public async Task<IActionResult> RegisterUser([FromBody] UserDto dto)
@@ -28,15 +33,13 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             Email = dto.Email,
-            UserName = dto.Email,
             EmailConfirmed = false
-        }; 
-
-        //Fetch info from servicebus
+        };
 
         var result = await _userService.CreateUserAsync(user, dto.Password);
         if (result.Succeeded)
         {
+            await _messageHandler.PublishUserCreatedEvent(user);
             return Created();
         }
         else
@@ -44,6 +47,7 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
             return BadRequest(ModelState);
         }
     }
+
 
     [HttpPost("signin")]
     public async Task<IActionResult> SignIn([FromBody] SignInDto dto)
@@ -66,7 +70,7 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
             return BadRequest(dto);
         }
 
-        var result = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, dto.RememberMe, false); 
+        var result = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, dto.RememberMe, false);
         return Ok(result);
 
     }
@@ -77,4 +81,6 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         await _signInManager.SignOutAsync();
         return Ok();
     }
+
+
 }
