@@ -15,17 +15,17 @@ public class UserService(UserManager<UserEntity> userManager)
         return await _userManager.CreateAsync(user, password);
     }
 
-    public async Task<bool> ConfirmUser(string email)
+    public async Task<UserEntity> ConfirmUser(string email)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user != null)
         {
             user.EmailConfirmed = true;
             await _userManager.UpdateAsync(user);
-            return true;
+            return user;
         }
         
-        return false; 
+        return null!; 
     }
 
     public async Task<IEnumerable<UserEntity>> GetAllUsersAsync()

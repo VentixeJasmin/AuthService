@@ -46,11 +46,13 @@ public class AccountCreatedMessageHandler : BackgroundService
                 var userService = scope.ServiceProvider.GetRequiredService<UserService>();
 
                 var result = await userService.ConfirmUser(emailVerifiedEvent!.Email);
-                if (result)
+                if (result != null)
                 {
-                    return;
+                    await PublishUserConfirmedEvent(result);
                 }
             }
+
+            await args.CompleteMessageAsync(args.Message); 
         }
         catch (Exception ex) 
         {
@@ -70,12 +72,14 @@ public class AccountCreatedMessageHandler : BackgroundService
         await base.StopAsync(cancellationToken); 
     }
 
-    public async Task PublishUserCreatedEvent(UserEntity user)
+    private async Task PublishUserConfirmedEvent(UserEntity user)
     {
         var sender = _serviceBusClient.CreateSender("account-created");
-        var eventMessage = new UserRegisteredEvent
+        var eventMessage = new UserConfirmedEvent
         {
-            Email = user.Email!
+            UserId = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName
         };
 
         var message = new ServiceBusMessage(JsonSerializer.Serialize(eventMessage));

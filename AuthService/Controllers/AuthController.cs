@@ -12,13 +12,13 @@ namespace AuthService.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(UserManager<UserEntity> userManager, UserService userService, SignInManager<UserEntity> signInManager, ServiceBusClient serviceBusClient, AccountCreatedMessageHandler messageHandler) : ControllerBase
+public class AuthController(UserManager<UserEntity> userManager, UserService userService, SignInManager<UserEntity> signInManager, ServiceBusClient serviceBusClient) : ControllerBase
 {
     private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly UserService _userService = userService;
     private readonly SignInManager<UserEntity> _signInManager = signInManager;
     private readonly ServiceBusClient _serviceBusClient = serviceBusClient;
-    private readonly AccountCreatedMessageHandler _messageHandler = messageHandler;
+
 
     [HttpPost("signup")]
     public async Task<IActionResult> RegisterUser([FromBody] UserDto dto)
@@ -39,8 +39,8 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         var result = await _userService.CreateUserAsync(user, dto.Password);
         if (result.Succeeded)
         {
-            await _messageHandler.PublishUserCreatedEvent(user);
-            return Created();
+            await PublishUserCreatedEvent(user.Email);
+            return Ok("Registration successful. Please check your email and verify your account.");
         }
         else
         {
@@ -82,5 +82,16 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         return Ok();
     }
 
+    private async Task PublishUserCreatedEvent(string email)
+    {
+        var sender = _serviceBusClient.CreateSender("account-created");
+        var eventMessage = new UserRegisteredEvent
+        {
+            Email = email
+        };
 
+        var message = new ServiceBusMessage(JsonSerializer.Serialize(eventMessage));
+
+        await sender.SendMessageAsync(message);
+    }
 }
