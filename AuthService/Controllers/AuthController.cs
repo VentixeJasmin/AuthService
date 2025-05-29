@@ -98,7 +98,7 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         };
 
         var serializedMessage = JsonSerializer.Serialize(eventMessage);
-        Console.WriteLine($"Publishing message: {serializedMessage}"); // Add this line
+        Console.WriteLine($"Publishing message: {serializedMessage}"); 
 
         var message = new ServiceBusMessage(serializedMessage);
 
