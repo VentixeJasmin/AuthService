@@ -19,7 +19,7 @@ builder.Services.AddSingleton<ServiceBusClient>(provider =>
     var connectionString = builder.Configuration.GetConnectionString("ServiceBus");
     return new ServiceBusClient(connectionString);
 });
-builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("AuthDatabaseConnection")));
+builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("VentixeDatabaseConnection")));
 
 builder.Services.AddHostedService<AccountCreatedMessageHandler>();
 

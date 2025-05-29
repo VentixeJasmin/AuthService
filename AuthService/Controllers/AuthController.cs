@@ -40,7 +40,7 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         var result = await _userService.CreateUserAsync(user, dto.Password);
         if (result.Succeeded)
         {
-            await PublishUserCreatedEvent(user.Email);
+            await PublishUserCreatedEvent(user);
             return Ok(new { message = "Registration successful. Please check your email and verify your account.", userId = user.Id });
         }
         else
@@ -86,12 +86,15 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         return Ok();
     }
 
-    private async Task PublishUserCreatedEvent(string email)
+    private async Task PublishUserCreatedEvent(UserEntity user)
     {
         var sender = _serviceBusClient.CreateSender("account-created");
         var eventMessage = new UserRegisteredEvent
         {
-            Email = email
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+
         };
 
         var serializedMessage = JsonSerializer.Serialize(eventMessage);
