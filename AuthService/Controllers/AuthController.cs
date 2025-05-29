@@ -91,7 +91,7 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         var sender = _serviceBusClient.CreateSender("account-created");
         var eventMessage = new UserRegisteredEvent
         {
-            Email = user.Email,
+            Email = user.Email!,
             FirstName = user.FirstName,
             LastName = user.LastName,
 
