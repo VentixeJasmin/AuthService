@@ -28,6 +28,11 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
             return BadRequest(ModelState);
         }
 
+        if (dto.AcceptTerms == false)
+        {
+            return BadRequest(ModelState);
+        }
+
         var user = new UserEntity
         {
             FirstName = dto.FirstName,
