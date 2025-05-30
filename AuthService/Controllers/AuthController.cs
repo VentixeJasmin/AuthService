@@ -93,6 +93,11 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
 
     private async Task PublishUserCreatedEvent(UserEntity user)
     {
+        Console.WriteLine("=== SENDING SERVICEBUS MESSAGE ===");
+        Console.WriteLine($"About to send message for user: {user.Email}");
+        // Your existing ServiceBus send code
+        
+
         var sender = _serviceBusClient.CreateSender("account-created");
         var eventMessage = new UserRegisteredEvent
         {
@@ -101,6 +106,8 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
             LastName = user.LastName,
 
         };
+
+        Console.WriteLine("=== MESSAGE SENT TO SERVICEBUS ===");
 
         var serializedMessage = JsonSerializer.Serialize(eventMessage);
         Console.WriteLine($"Publishing message: {serializedMessage}"); 
