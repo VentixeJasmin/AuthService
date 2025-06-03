@@ -44,7 +44,7 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
 
             var verificationRequest = new VerificationRequestModel { Email = dto.Email, FirstName = dto.FirstName, LastName = dto.LastName };
 
-            var apiResult = await httpClient.PostAsJsonAsync("https://verificationservice-jdf-e5d8azctc7fnapca.swedencentral-01.azurewebsites.net/", verificationRequest);
+            var apiResult = await httpClient.PostAsJsonAsync("https://verificationservice-jdf-e5d8azctc7fnapca.swedencentral-01.azurewebsites.net/api/verification/sendverification", verificationRequest);
             if (!apiResult.IsSuccessStatusCode)
                 return BadRequest("Something went wrong, please try again");
 
