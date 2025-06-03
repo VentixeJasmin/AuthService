@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<GenerateEmail>();
 
 //Got help with the ServiceBus configuring by Claude AI
 builder.Services.AddSingleton<ServiceBusClient>(provider =>

@@ -5,19 +5,22 @@ using Azure.Messaging.ServiceBus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Runtime.Intrinsics.Arm;
+using System.Text;
 using System.Text.Json;
 
 namespace AuthService.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(UserManager<UserEntity> userManager, UserService userService, SignInManager<UserEntity> signInManager, ServiceBusClient serviceBusClient) : ControllerBase
+public class AuthController(UserManager<UserEntity> userManager, UserService userService, SignInManager<UserEntity> signInManager, ServiceBusClient serviceBusClient, GenerateEmail generateEmail) : ControllerBase
 {
     private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly UserService _userService = userService;
     private readonly SignInManager<UserEntity> _signInManager = signInManager;
     private readonly ServiceBusClient _serviceBusClient = serviceBusClient;
+    private readonly GenerateEmail _generateEmail = generateEmail;
 
 
     [HttpPost("signup")]
@@ -45,7 +48,19 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         var result = await _userService.CreateUserAsync(user, dto.Password);
         if (result.Succeeded)
         {
-            await PublishUserCreatedEvent(user);
+            //var emailRequest = _generateEmail.GenerateVerificationEmail(dto.Email);
+
+            //var sender = _serviceBusClient.CreateSender("user-registered");
+            //await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailRequest))));
+            var httpClient = new HttpClient();
+
+            var verificationRequest = new VerificationRequestModel { Email = dto.Email, FirstName = dto.FirstName, LastName = dto.LastName };
+
+            var apiResult = await httpClient.PostAsJsonAsync("", verificationRequest);
+            if (!apiResult.IsSuccessStatusCode)
+                return BadRequest("Something went wrong, please try again");
+
+            //await PublishUserCreatedEvent(user);
             return Ok(new { message = "Registration successful. Please check your email and verify your account.", userId = user.Id });
         }
         else
@@ -91,29 +106,16 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         return Ok();
     }
 
-    private async Task PublishUserCreatedEvent(UserEntity user)
+
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest request)
     {
-        Console.WriteLine("=== SENDING SERVICEBUS MESSAGE ===");
-        Console.WriteLine($"About to send message for user: {user.Email}");
-        // Your existing ServiceBus send code
-        
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+            return BadRequest(ModelState);
 
-        var sender = _serviceBusClient.CreateSender("account-created");
-        var eventMessage = new UserRegisteredEvent
-        {
-            Email = user.Email!,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-
-        };
-
-        Console.WriteLine("=== MESSAGE SENT TO SERVICEBUS ===");
-
-        var serializedMessage = JsonSerializer.Serialize(eventMessage);
-        Console.WriteLine($"Publishing message: {serializedMessage}"); 
-
-        var message = new ServiceBusMessage(serializedMessage);
-
-        await sender.SendMessageAsync(message);
+        user.EmailConfirmed = true;
+        await _userManager.UpdateAsync(user);
+        return Ok();
     }
 }
