@@ -1,14 +1,8 @@
 ﻿using AuthService.Models;
-using AuthService.ServiceBus;
 using AuthService.Services;
-using Azure.Messaging.ServiceBus;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Runtime.Intrinsics.Arm;
-using System.Text;
-using System.Text.Json;
+
 
 namespace AuthService.Controllers;
 

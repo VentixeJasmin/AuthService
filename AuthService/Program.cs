@@ -3,34 +3,14 @@ using Microsoft.AspNetCore.Identity;
 using AuthService.Models;
 using Microsoft.EntityFrameworkCore;
 using AuthService.Services;
-using Azure.Messaging.ServiceBus;
-using AuthService.ServiceBus;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<GenerateEmail>();
-
-//Got help with the ServiceBus configuring by Claude AI
-builder.Services.AddSingleton<ServiceBusClient>(provider =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("ServiceBus");
-    Console.WriteLine($"ServiceBus connection string: {connectionString}"); // Debug line
-
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new InvalidOperationException("ServiceBus connection string is null or empty");
-    }
-
-    return new ServiceBusClient(connectionString);
-});
 
 builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("VentixeDatabaseConnection")));
-
-builder.Services.AddHostedService<AccountCreatedMessageHandler>();
 
 builder.Services.AddIdentity<UserEntity, IdentityRole>(x =>
 {
