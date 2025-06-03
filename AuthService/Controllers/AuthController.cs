@@ -103,6 +103,7 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
 
         user.EmailConfirmed = true;
         await _userManager.UpdateAsync(user);
+        await _signInManager.SignInAsync(user, isPersistent: false);
         return Ok();
     }
 }
