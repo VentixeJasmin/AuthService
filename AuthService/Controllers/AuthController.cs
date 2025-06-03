@@ -14,13 +14,11 @@ namespace AuthService.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(UserManager<UserEntity> userManager, UserService userService, SignInManager<UserEntity> signInManager, ServiceBusClient serviceBusClient, GenerateEmail generateEmail) : ControllerBase
+public class AuthController(UserManager<UserEntity> userManager, UserService userService, SignInManager<UserEntity> signInManager) : ControllerBase
 {
     private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly UserService _userService = userService;
     private readonly SignInManager<UserEntity> _signInManager = signInManager;
-    private readonly ServiceBusClient _serviceBusClient = serviceBusClient;
-    private readonly GenerateEmail _generateEmail = generateEmail;
 
 
     [HttpPost("signup")]
@@ -48,19 +46,14 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         var result = await _userService.CreateUserAsync(user, dto.Password);
         if (result.Succeeded)
         {
-            //var emailRequest = _generateEmail.GenerateVerificationEmail(dto.Email);
-
-            //var sender = _serviceBusClient.CreateSender("user-registered");
-            //await sender.SendMessageAsync(new ServiceBusMessage(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(emailRequest))));
             var httpClient = new HttpClient();
 
             var verificationRequest = new VerificationRequestModel { Email = dto.Email, FirstName = dto.FirstName, LastName = dto.LastName };
 
-            var apiResult = await httpClient.PostAsJsonAsync("", verificationRequest);
+            var apiResult = await httpClient.PostAsJsonAsync("https://verificationservice-jdf-e5d8azctc7fnapca.swedencentral-01.azurewebsites.net/", verificationRequest);
             if (!apiResult.IsSuccessStatusCode)
                 return BadRequest("Something went wrong, please try again");
 
-            //await PublishUserCreatedEvent(user);
             return Ok(new { message = "Registration successful. Please check your email and verify your account.", userId = user.Id });
         }
         else
