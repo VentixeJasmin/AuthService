@@ -83,7 +83,6 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
 
         var result = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, dto.RememberMe, false);
         return Ok(result);
-
     }
 
     [HttpPost("signout")]

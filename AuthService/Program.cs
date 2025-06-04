@@ -9,8 +9,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<UserService>();
-
 builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("VentixeDatabaseConnection")));
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://jolly-ocean-090980503.6.azurestaticapps.net", "http://localhost:5173") // <-- Put your real frontend URL here
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // <-- Important for cookies
+    });
+});
 
 builder.Services.AddIdentity<UserEntity, IdentityRole>(x =>
 {
@@ -29,7 +39,7 @@ var app = builder.Build();
 app.MapOpenApi();
 
 app.UseHttpsRedirection();
-app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
