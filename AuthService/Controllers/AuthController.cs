@@ -69,11 +69,8 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         }
 
         var user = await _userManager.FindByEmailAsync(dto.Email);
-        if (user == null)
-        {
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-            return BadRequest(dto);
-        }
+        if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
+            return Unauthorized();
 
         if (!user.EmailConfirmed)
         {
@@ -81,8 +78,8 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
             return BadRequest(dto);
         }
 
-        var result = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, dto.RememberMe, false);
-        return Ok(result);
+        await _signInManager.SignInAsync(user, isPersistent: dto.RememberMe);
+        return Ok(new { message = "Signed in" });
     }
 
     [HttpPost("signout")]
