@@ -2,6 +2,7 @@
 using AuthService.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 
 namespace AuthService.Controllers;
@@ -78,7 +79,13 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
             return BadRequest(dto);
         }
 
-        await _signInManager.SignInAsync(user, isPersistent: dto.RememberMe);
+        var claims = new List<Claim>
+        {
+            new("FirstName", user.FirstName ?? ""),
+            new("LastName", user.LastName ?? "")
+        };
+
+        await _signInManager.SignInWithClaimsAsync(user, isPersistent: dto.RememberMe, claims);
         return Ok(new { message = "Signed in" });
     }
 
