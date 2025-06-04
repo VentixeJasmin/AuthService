@@ -112,10 +112,16 @@ public class AuthController(UserManager<UserEntity> userManager, UserService use
         if (User?.Identity == null || !User.Identity.IsAuthenticated)
             return Unauthorized();
 
+        var firstName = User.Claims.FirstOrDefault(c => c.Type == "FirstName")?.Value;
+        var lastName = User.Claims.FirstOrDefault(c => c.Type == "LastName")?.Value;
+
         return Ok(new
         {
-            User.Identity.Name,
+            Email = User.Identity.Name,
+            FirstName = firstName,
+            LastName = lastName,
             Claims = User.Claims.Select(c => new { c.Type, c.Value })
         });
     }
+
 }
