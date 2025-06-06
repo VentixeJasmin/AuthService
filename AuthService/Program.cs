@@ -53,12 +53,6 @@ builder.Services.AddIdentityCore<UserEntity>(x =>
     .AddEntityFrameworkStores<DataContext>()
     .AddDefaultTokenProviders();
 
-//Suggestion by Claude AI to make api calls better 
-builder.Services.AddHttpClient("ProfileService", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["Services:ProfileService:BaseUrl"]);
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-});
 
 var app = builder.Build();
 
