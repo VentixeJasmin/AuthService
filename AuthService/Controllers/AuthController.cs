@@ -15,12 +15,11 @@ namespace AuthService.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(UserManager<UserEntity> userManager, UserService userService, IConfiguration configuration, IHttpClientFactory httpClientFactory) : ControllerBase
+public class AuthController(UserManager<UserEntity> userManager, UserService userService, IConfiguration configuration) : ControllerBase
 {
     private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly UserService _userService = userService;
     private readonly IConfiguration _configuration = configuration;
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 
 
     [HttpPost("signup")]
